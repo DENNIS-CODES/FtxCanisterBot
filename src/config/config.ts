@@ -6,8 +6,6 @@ if (!process.env.BOT_TOKEN && !process.env.DB_URL) {
   );
 }
 export const CONFIG = {
-  LIVE_API_KEY: process.env.LIVE_API_KEY || "",
-  LIVE_API_SECRET: process.env.LIVE_API_SECRET || "",
   SUB_API_KEY: process.env.SUB_API_KEY || "",
   SUB_API_SECRET: process.env.SUB_API_SECRET || "",
 

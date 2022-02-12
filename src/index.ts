@@ -159,8 +159,9 @@ const Main = async () => {
             );
           } else if (numOfOrders == 19) {
             ftxWrapper = new ftxCanisterWrapper(
-              CONFIG.LIVE_API_KEY,
-              CONFIG.LIVE_API_SECRET
+              CONFIG.SUB_API_KEY,
+              CONFIG.SUB_API_SECRET,
+              subAccountName
             );
             ftxWrapper._minProfit(side, quantity, trailBy, type, target, chase);
             console.log(cancelPrice);
@@ -289,8 +290,8 @@ const Main = async () => {
       try {
         if (botNumber == 2) {
           ftxWrapper = new ftxCanisterWrapper(
-            CONFIG.LIVE_API_KEY,
-            CONFIG.LIVE_API_SECRET,
+            CONFIG.SUB_API_KEY,
+            CONFIG.SUB_API_SECRET,
             subAccountName
           );
           ftxWrapper._cancelAllOrders({
