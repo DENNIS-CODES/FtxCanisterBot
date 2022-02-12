@@ -357,9 +357,9 @@ export class ftxCanisterWrapper {
                     }
                     //  modify at 3 seconds interval
                     await sleep(7_000);
-                    process.exit(1);
                   }
                 }
+                process.exit(1);
               })
               .catch((err: any) => {
                 console.error(`Error:`, err);
@@ -533,9 +533,9 @@ export class ftxCanisterWrapper {
                     }
                     //  modify at 3 seconds interval
                     await sleep(7_000);
-                    process.exit(1);
                   }
                 }
+                process.exit(1);
               })
               .catch((err: any) => {
                 console.error(`Error:`, err);
