@@ -321,7 +321,7 @@ const Main = async () => {
       console.log(req.body);
       const { numOfOrders, botNumber, cancelPrice } = req.body;
       let ftxWrapper;
-      if (botNumber == 1) {
+      if (botNumber == 2) {
         try {
           if (numOfOrders == 25) {
             ftxWrapper = new ftxCanisterWrapper(
