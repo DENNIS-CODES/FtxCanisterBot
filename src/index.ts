@@ -325,8 +325,9 @@ const Main = async () => {
         try {
           if (numOfOrders == 25) {
             ftxWrapper = new ftxCanisterWrapper(
-              CONFIG.LIVE_API_KEY,
-              CONFIG.LIVE_API_SECRET
+              CONFIG.SUB_API_KEY,
+              CONFIG.SUB_API_SECRET,
+              subAccountName
             );
             res.status(200).json({
               status: "success",
