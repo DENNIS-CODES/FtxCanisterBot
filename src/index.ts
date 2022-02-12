@@ -50,7 +50,7 @@ const Main = async () => {
   const subAccountName = "Reserves";
 
   app.post(
-    "/speedymanbot/api/v1/orders/cannister",
+    "/canisterbot/api/v1/orders/cannister",
     async (req: Request, res: Response) => {
       const {
         side,
@@ -265,7 +265,7 @@ const Main = async () => {
   );
 
   app.post(
-    "/speedymanbot/api/v1/orders/cannister",
+    "/canisterbot/api/v1/orders/cannister",
     async (req: Request, res: Response) => {
       const {
         side,
@@ -944,7 +944,7 @@ const Main = async () => {
    * Stop Bot
    */
   app.post(
-    "/speedymanbot/api/v1/orders/stop",
+    "/canisterbot/api/v1/orders/stop",
     async (req: Request, res: Response) => {
       console.log("THE BODY");
       console.log(req.body);
@@ -982,7 +982,7 @@ const Main = async () => {
    *
    * Server Connection
    */
-  app.get("/speedymanbot/ping", (req: any, res: any) => {
+  app.get("/canisterbot/ping", (req: any, res: any) => {
     return res.send({
       error: false,
       message: "server on Fire🔥🔥😉",
