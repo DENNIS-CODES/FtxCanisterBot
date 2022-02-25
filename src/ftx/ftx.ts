@@ -244,11 +244,11 @@ export class ftxCanisterWrapper {
               let current_price: any = await this._client.getFuture(
                 this._MARKET
               );
-              let price: any = current_price?.result?.last;
+              let price: any = current_price.result.last;
               if (side.toLowerCase() == "sell") {
-                new_price = price + Math.abs(chase?.by_amount || 0);
+                new_price = price + Math.abs(chase.by_amount || 0);
               } else {
-                new_price = price - Math.abs(chase?.by_amount || 0);
+                new_price = price - Math.abs(chase.by_amount || 0);
               }
               let data;
               try {
@@ -272,7 +272,7 @@ export class ftxCanisterWrapper {
                 sendMessage(message);
                 console.log(message);
               } else {
-                message = `Error while modifying Order: ${data?.error}`;
+                message = `Error while modifying Order: ${id}`;
                 sendMessage(message);
                 console.log(message);
                 break;
