@@ -68,19 +68,30 @@ const Main = async () => {
         botNumber,
         cancelPrice,
         stopPrice,
+        chaseOnce
       } = req.body;
 
       try {
         let ftxWrapper;
         if (botNumber == 2) {
-          if (numOfOrders == 13) {
+          if (numOfOrders == 1 || 5 || 9) {
             // First two orders
             ftxWrapper = new ftxCanisterWrapper(
               CONFIG.SUB_API_KEY,
               CONFIG.SUB_API_SECRET,
               subAccountName
             );
-            await ftxWrapper._placeLimitOrder(
+            if (chaseOnce == "x") {
+              await ftxWrapper._chaseOnce(
+              side,
+              quantity,
+              market,
+              price,
+              type,
+              chase
+            );
+            } else {
+              await ftxWrapper._placeLimitOrder(
               side,
               quantity,
               market,
@@ -89,6 +100,7 @@ const Main = async () => {
               type,
               chase
             );
+            }                       
           } else if (numOfOrders == 14) {
             // LossProtection Orders
             ftxWrapper = new ftxCanisterWrapper(

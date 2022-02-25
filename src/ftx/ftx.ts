@@ -195,6 +195,114 @@ export class ftxCanisterWrapper {
     await sleep(250);
   };
 
+  _chaseOnce = async (
+    side: OrderSide,
+    size: number,
+    symbol: string,
+    type: OrderSide,
+    target: number,
+    chase: {
+      by_amount: number;
+      howLongInSec: number;
+      chaseTimeLimit: number;
+    }
+  ) => {
+    let current_price: any = await this._client.getFuture(this._MARKET);
+    let currentPrice: any = current_price?.result;
+    console.log(currentPrice);
+    try {
+      let price = currentPrice?.last;
+      if (side.toLowerCase() == "sell") {
+        price = price + Math.abs(chase?.by_amount || 0);
+      } else {
+        price = price - Math.abs(chase?.by_amount || 0);
+      }
+
+      await this._client
+        .placeOrder({
+          side,
+          size: size / parseFloat(`${currentPrice?.last}`),
+          market: this._MARKET,
+          price,
+          type: "limit",
+        })
+        .then(async (result: any) => {
+          let message = "";
+          if (result["success"]) {
+            message = `Placed a new limit order with id: \`${result.result?.id}\``;
+            sendMessage(message);
+            console.log(message);
+            let id = result["result"]["id"];
+            let side = result["result"]["side"];
+            let market = result["result"]["size"];
+            let new_price;
+            let startTime = new Date().getTime();
+            let count = 1;
+            while (chase) {
+              message = `\`${count}:\` Chasing Order \`${id}\`...`;
+              console.log(message);
+              sendMessage(message);
+              let current_price: any = await this._client.getFuture(
+                this._MARKET
+              );
+              let price: any = current_price?.result?.last;
+              if (side.toLowerCase() == "sell") {
+                new_price = price + Math.abs(chase?.by_amount || 0);
+              } else {
+                new_price = price - Math.abs(chase?.by_amount || 0);
+              }
+              let data;
+              try {
+                data = await this._client.modifyOrder({
+                  orderId: id,
+                  price: new_price,
+                });
+              } catch (error: any) {
+                let rsn = error?.body?.error;
+                console.log("Error: ", rsn);
+                if (rsn?.includes("Size too small for provide")) {
+                  message = `Order is now in position`;
+                  sendMessage(message);
+                  break;
+                }
+              }
+              if (data?.success) {
+                id = data["result"]["id"];
+                side = data["result"]["side"];
+                message = `Success: Modifying order: ${data?.error}`;
+                sendMessage(message);
+                console.log(message);
+              } else {
+                message = `Error while modifying Order: ${data?.error}`;
+                sendMessage(message);
+                console.log(message);
+                break;
+              }
+              console.log("modify:", data);
+              let current = new Date().getTime();
+              let diff = current - startTime;
+              if (
+                chase.howLongInSec >= chase.chaseTimeLimit &&
+                diff >= chase.howLongInSec * 1_000
+              ) {
+                await this._client.cancelOrder(id);
+                break;
+              }
+              await sleep(7_000);
+              break;
+            }
+          } else {
+            console.log("Error: ", result);
+          }
+        })
+        .catch((err: any) => {
+          console.error("Errors", err);
+        });
+    } catch (error) {
+      console.log(error);   
+    }
+  };
+
   _lossProtection = async (
     side: OrderSide,
     size: number,
