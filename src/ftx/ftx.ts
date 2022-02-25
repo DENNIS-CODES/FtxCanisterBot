@@ -217,7 +217,6 @@ export class ftxCanisterWrapper {
       } else {
         price = price - Math.abs(chase?.by_amount || 0);
       }
-
       await this._client
         .placeOrder({
           side,
