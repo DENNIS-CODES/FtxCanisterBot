@@ -61,6 +61,7 @@ export class ftxCanisterWrapper {
       by_amount: number;
       howLongInSec: number;
       chaseTimeLimit: number;
+      sleep: number;
     }
   ) => {
     console.log("chase amount", chase.by_amount);
@@ -71,7 +72,6 @@ export class ftxCanisterWrapper {
     if (_future.success) {
       try {
         let new_price;
-
         if (side.toLowerCase() == "sell") {
           new_price = future?.last + Math.abs(chase?.by_amount || 0);
         } else {
@@ -87,7 +87,6 @@ export class ftxCanisterWrapper {
           })
           .then(async (result: any) => {
             let message = "";
-
             if (result["success"]) {
               message = `Placed a new limit order with id: \`${result.result?.id}\``;
               sendMessage(message);
@@ -136,19 +135,13 @@ export class ftxCanisterWrapper {
 
                 if (data?.success) {
                   id = data["result"]["id"];
-
                   side = data["result"]["side"];
-
                   message = `Success: modified order \`${id}\``;
-
                   sendMessage(message);
                 } else {
                   message = `Error while modifying order: ${data?.error}`;
-
                   sendMessage(message);
-
                   console.log(message);
-
                   break;
                 }
                 console.log("modify:", data);
@@ -166,7 +159,6 @@ export class ftxCanisterWrapper {
                     price,
                     type: "market",
                   });
-
                   break;
                 }
                 if (
@@ -175,11 +167,10 @@ export class ftxCanisterWrapper {
                 ) {
                   // we cancel order
                   await this._client.cancelOrder(id);
-
                   break;
                 }
                 //  modify at 3 seconds interval
-                await sleep(7_000);
+                await sleep(chase.sleep);
               }
             } else {
               console.log("Error", result);
@@ -205,6 +196,7 @@ export class ftxCanisterWrapper {
       by_amount: number;
       howLongInSec: number;
       chaseTimeLimit: number;
+      sleep: number;
     }
   ) => {
     let current_price: any = await this._client.getFuture(this._MARKET);
@@ -287,7 +279,7 @@ export class ftxCanisterWrapper {
                 await this._client.cancelOrder(id);
                 break;
               }
-              await sleep(7_000);
+              await sleep(chase.sleep);
               break;
             }
           } else {
@@ -312,6 +304,7 @@ export class ftxCanisterWrapper {
       by_amount: number;
       howLongInSec: number;
       chaseTimeLimit: number;
+      sleep: number;
     }
   ) => {
     let new_price;
@@ -463,7 +456,7 @@ export class ftxCanisterWrapper {
                       break;
                     }
                     //  modify at 3 seconds interval
-                    await sleep(7_000);
+                    await sleep(chase.sleep);
                   }
                 }
                 process.exit(1);
@@ -488,6 +481,7 @@ export class ftxCanisterWrapper {
       by_amount: number;
       howLongInSec: number;
       chaseTimeLimit: number;
+      sleep: number;
     }
   ) => {
     let new_price;
@@ -639,7 +633,7 @@ export class ftxCanisterWrapper {
                       break;
                     }
                     //  modify at 3 seconds interval
-                    await sleep(7_000);
+                    await sleep(chase.sleep);
                   }
                 }
                 process.exit(1);
@@ -666,140 +660,92 @@ export class ftxCanisterWrapper {
       by_amount: number;
       howLongInSec: number;
       chaseTimeLimit: number;
+      sleep: number;
     }
   ) => {
     console.log("chase amount", chase?.by_amount);
-
     let _future: any = await this._client.getFuture(this._MARKET);
-
     let future: any = _future?.result;
-
     console.log(future);
-
     let new_price;
-
     try {
       if (side.toLowerCase() == "sell") {
         new_price = future?.last + Math.abs(chase?.by_amount || 0);
       } else {
         new_price = future?.last - Math.abs(chase?.by_amount || 0);
       }
-
       await this._client
-
         .placeOrder({
           side,
-
           size: size / parseFloat(`${future?.last}`), // Converting size orders into USD
-
           market: this._MARKET,
-
           price: new_price,
-
           type: "limit",
         })
-
         .then(async (result: any) => {
           let message = "";
-
           if (result["success"]) {
             message = `Placed a new limit order with id: \`${result.result?.id}\``;
-
             sendMessage(message);
-
             console.log(message);
-
             let id = result["result"]["id"];
-
             let side = result["result"]["side"];
-
             let market = result["result"]["market"];
-
             let size = result["result"]["size"];
-
             let startTime = new Date().getTime();
-
             let new_price;
-
             let count = 1;
-
             while (chase) {
               message = `\`${count}:\` Chasing order \`${id}\`...`;
-
               console.log(message);
-
               sendMessage(message);
-
               count++;
-
               let _future: any = await this._client.getFuture(this._MARKET);
-
               let price: any = _future?.result?.last;
-
               if (side.toLowerCase() == "sell") {
                 new_price = price + Math.abs(chase.by_amount || 0);
               } else {
                 new_price = price - Math.abs(chase.by_amount || 0);
               }
-
               let data;
-
               try {
                 data = await this._client.modifyOrder({
                   orderId: id,
-
                   price: new_price,
                 });
               } catch (error: any) {
                 let rsn = error?.body?.error;
-
                 console.log("Error:", rsn);
-
                 if (rsn?.includes("Must modify either price or size")) {
                   sendMessage(message);
-
                   continue;
                 }
-
                 if (rsn?.includes("Size too small for provide")) {
                   message = `Order is now in position`;
-
                   sendMessage(message);
-
                   break;
                 }
               }
 
               if (data?.success) {
                 id = data["result"]["id"];
-
                 side = data["result"]["side"];
-
                 message = `Success: modified order \`${id}\``;
-
                 sendMessage(message);
               } else {
                 message = `Error while modifying order: ${data?.error}`;
-
                 sendMessage(message);
-
                 console.log(message);
-
                 break;
               }
-
               console.log("modify:", data);
-
               let current = new Date().getTime();
-
               let diff = current - startTime;
-
               if (
                 chase.howLongInSec >= chase.chaseTimeLimit &&
                 diff >= chase.howLongInSec * 1_000
               ) {
                 // we go market
-
                 await this._client.placeOrder({
                   side,
                   size,
@@ -818,7 +764,7 @@ export class ftxCanisterWrapper {
                 break;
               }
               //  modify at 3 seconds interval
-              await sleep(7_000);
+              await sleep(chase.sleep);
             }
           }
         })
