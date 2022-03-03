@@ -80,7 +80,7 @@ const Main = async () => {
             CONFIG.SUB_API_SECRET,
             subAccountName
           );
-          if (chaseOnce == "x") {
+          if (chaseOnce == "true") {
             await ftxWrapper._chaseOnce(
               side,
               quantity,
@@ -144,7 +144,7 @@ const Main = async () => {
             CONFIG.SUB_API_SECRET,
             subAccountName
           );
-          if (chaseOnce == "x") {
+          if (chaseOnce == "true") {
             await ftxWrapper._chaseOnce(
               side,
               quantity,
@@ -209,7 +209,7 @@ const Main = async () => {
             CONFIG.SUB_API_SECRET,
             subAccountName
           );
-          if (chaseOnce == "x") {
+          if (chaseOnce == "true") {
             await ftxWrapper._chaseOnce(
               side,
               quantity,
