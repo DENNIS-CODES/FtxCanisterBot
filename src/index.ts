@@ -218,6 +218,16 @@ const Main = async () => {
               type,
               chase
             );
+          } else {
+            await ftxWrapper._placeLimitOrder(
+              side,
+              quantity,
+              market,
+              price,
+              symbol,
+              type,
+              chase
+            );
           }
         } else if (numOfOrders == 22) {
           // LossProtection Orders
