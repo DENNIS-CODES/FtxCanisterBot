@@ -84,7 +84,7 @@ const Main = async () => {
             await ftxWrapper._chaseOnce(
               side,
               quantity,
-              market,
+              symbol,
               price,
               type,
               chase
@@ -93,7 +93,7 @@ const Main = async () => {
             await ftxWrapper._placeLimitOrder(
               side,
               quantity,
-              market,
+              symbol,
               price,
               symbol,
               type,
@@ -113,7 +113,8 @@ const Main = async () => {
             trailBy,
             type,
             target,
-            chase
+            chase,
+            symbol
           );
         } else if (numOfOrders == 15) {
           ftxWrapper = new ftxCanisterWrapper(
@@ -121,7 +122,15 @@ const Main = async () => {
             CONFIG.SUB_API_SECRET,
             subAccountName
           );
-          ftxWrapper._minProfit(side, quantity, trailBy, type, target, chase);
+          ftxWrapper._minProfit(
+            side,
+            quantity,
+            trailBy,
+            type,
+            target,
+            chase,
+            symbol
+          );
         } else if (numOfOrders == 16) {
           ftxWrapper = new ftxCanisterWrapper(
             CONFIG.SUB_API_KEY,
@@ -131,7 +140,7 @@ const Main = async () => {
           ftxWrapper._exitProfit(
             side,
             quantity,
-            market,
+            symbol,
             price,
             symbol,
             type,
@@ -148,7 +157,7 @@ const Main = async () => {
             await ftxWrapper._chaseOnce(
               side,
               quantity,
-              market,
+              symbol,
               price,
               type,
               chase
@@ -157,7 +166,7 @@ const Main = async () => {
             await ftxWrapper._placeLimitOrder(
               side,
               quantity,
-              market,
+              symbol,
               price,
               symbol,
               type,
@@ -177,7 +186,8 @@ const Main = async () => {
             trailBy,
             type,
             target,
-            chase
+            chase,
+            symbol
           );
         } else if (numOfOrders == 19) {
           ftxWrapper = new ftxCanisterWrapper(
@@ -185,7 +195,15 @@ const Main = async () => {
             CONFIG.SUB_API_SECRET,
             subAccountName
           );
-          ftxWrapper._minProfit(side, quantity, trailBy, type, target, chase);
+          ftxWrapper._minProfit(
+            side,
+            quantity,
+            trailBy,
+            type,
+            target,
+            chase,
+            symbol
+          );
           console.log(cancelPrice);
         } else if (numOfOrders == 20) {
           ftxWrapper = new ftxCanisterWrapper(
@@ -213,7 +231,7 @@ const Main = async () => {
             await ftxWrapper._chaseOnce(
               side,
               quantity,
-              market,
+              symbol,
               price,
               type,
               chase
@@ -222,7 +240,7 @@ const Main = async () => {
             await ftxWrapper._placeLimitOrder(
               side,
               quantity,
-              market,
+              symbol,
               price,
               symbol,
               type,
@@ -242,7 +260,8 @@ const Main = async () => {
             trailBy,
             type,
             target,
-            chase
+            chase,
+            symbol
           );
         } else if (numOfOrders == 23) {
           ftxWrapper = new ftxCanisterWrapper(
@@ -250,7 +269,15 @@ const Main = async () => {
             CONFIG.SUB_API_SECRET,
             subAccountName
           );
-          ftxWrapper._minProfit(side, quantity, trailBy, type, target, chase);
+          ftxWrapper._minProfit(
+            side,
+            quantity,
+            trailBy,
+            type,
+            target,
+            chase,
+            symbol
+          );
         } else if (numOfOrders == 24) {
           ftxWrapper = new ftxCanisterWrapper(
             CONFIG.SUB_API_KEY,
@@ -272,7 +299,15 @@ const Main = async () => {
             CONFIG.SUB_API_SECRET,
             subAccountName
           );
-          ftxWrapper._minProfit(side, quantity, trailBy, type, target, chase);
+          ftxWrapper._minProfit(
+            side,
+            quantity,
+            trailBy,
+            type,
+            target,
+            chase,
+            symbol
+          );
         } else if (numOfOrders == 26) {
           // LossProtection Orders
           ftxWrapper = new ftxCanisterWrapper(
@@ -286,7 +321,8 @@ const Main = async () => {
             trailBy,
             type,
             target,
-            chase
+            chase,
+            symbol
           );
         }
 

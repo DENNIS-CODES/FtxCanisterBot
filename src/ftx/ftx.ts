@@ -65,7 +65,7 @@ export class ftxCanisterWrapper {
     }
   ) => {
     console.log("chase amount", chase.by_amount);
-    let _future: any = await this._client.getFuture(this._MARKET);
+    let _future: any = await this._client.getFuture(symbol);
     let future: any = _future?.result;
     console.log(future);
 
@@ -81,7 +81,7 @@ export class ftxCanisterWrapper {
           .placeOrder({
             side,
             size: size / parseFloat(`${future?.last}`), // Converting size orders into USD
-            market: this._MARKET,
+            market: symbol,
             price: new_price,
             type: "limit",
           })
@@ -106,7 +106,7 @@ export class ftxCanisterWrapper {
 
                 count++;
 
-                let _future: any = await this._client.getFuture(market);
+                let _future: any = await this._client.getFuture(symbol);
                 let price: any = _future?.result?.last;
                 if (side.toLowerCase() == "sell") {
                   new_price = price + Math.abs(chase?.by_amount || 0);
@@ -199,7 +199,7 @@ export class ftxCanisterWrapper {
       sleep: number;
     }
   ) => {
-    let current_price: any = await this._client.getFuture(this._MARKET);
+    let current_price: any = await this._client.getFuture(symbol);
     let currentPrice: any = current_price?.result;
     console.log(currentPrice);
     try {
@@ -213,7 +213,7 @@ export class ftxCanisterWrapper {
         .placeOrder({
           side,
           size: size / parseFloat(`${currentPrice?.last}`),
-          market: this._MARKET,
+          market: symbol,
           price,
           type: "limit",
         })
@@ -290,7 +290,7 @@ export class ftxCanisterWrapper {
           console.error("Errors", err);
         });
     } catch (error) {
-      console.log(error);   
+      console.log(error);
     }
   };
 
@@ -305,14 +305,15 @@ export class ftxCanisterWrapper {
       howLongInSec: number;
       chaseTimeLimit: number;
       sleep: number;
-    }
+    },
+    symbol: string
   ) => {
     let new_price;
     let pass = true;
     let newPrice = target;
     console.log("Trigger Price:", newPrice);
     console.log("chase amount", chase?.by_amount);
-    let _future: any = await this._client.getFuture(this._MARKET);
+    let _future: any = await this._client.getFuture(symbol);
     let future: any = _future?.result;
     await sleep(250);
     console.log("Live Price:", future.last);
@@ -325,7 +326,7 @@ export class ftxCanisterWrapper {
         futureLastPrice = false;
         break loop1;
       }
-      let _future: any = await this._client.getFuture(this._MARKET);
+      let _future: any = await this._client.getFuture(symbol);
       let future: any = _future?.result;
       try {
         if (side == "sell") {
@@ -357,7 +358,7 @@ export class ftxCanisterWrapper {
               .placeOrder({
                 side,
                 size: size / parseFloat(`${future?.last}`),
-                market: this._MARKET,
+                market: symbol,
                 price: new_price,
                 type: "limit",
               })
@@ -382,9 +383,7 @@ export class ftxCanisterWrapper {
                     sendMessage(message);
                     count++;
 
-                    let _future: any = await this._client.getFuture(
-                      this._MARKET
-                    );
+                    let _future: any = await this._client.getFuture(symbol);
 
                     let price: any = _future?.result?.last;
 
@@ -482,14 +481,15 @@ export class ftxCanisterWrapper {
       howLongInSec: number;
       chaseTimeLimit: number;
       sleep: number;
-    }
+    },
+    symbol: string
   ) => {
     let new_price;
     let pass = true;
     let newPrice = target;
     console.log("Trigger Price:", newPrice);
     console.log("chase amount", chase?.by_amount);
-    let _future: any = await this._client.getFuture(this._MARKET);
+    let _future: any = await this._client.getFuture(symbol);
     let future: any = _future?.result;
     await sleep(250);
     console.log("Live Price:", future.last);
@@ -502,7 +502,7 @@ export class ftxCanisterWrapper {
         futureLastPrice = false;
         break loop1;
       }
-      let _future: any = await this._client.getFuture(this._MARKET);
+      let _future: any = await this._client.getFuture(symbol);
       let future: any = _future?.result;
       try {
         if (side == "sell") {
@@ -534,7 +534,7 @@ export class ftxCanisterWrapper {
               .placeOrder({
                 side,
                 size: size / parseFloat(`${future?.last}`),
-                market: this._MARKET,
+                market: symbol,
                 price: new_price,
                 type: "limit",
               })
@@ -664,7 +664,7 @@ export class ftxCanisterWrapper {
     }
   ) => {
     console.log("chase amount", chase?.by_amount);
-    let _future: any = await this._client.getFuture(this._MARKET);
+    let _future: any = await this._client.getFuture(symbol);
     let future: any = _future?.result;
     console.log(future);
     let new_price;
@@ -678,7 +678,7 @@ export class ftxCanisterWrapper {
         .placeOrder({
           side,
           size: size / parseFloat(`${future?.last}`), // Converting size orders into USD
-          market: this._MARKET,
+          market: symbol,
           price: new_price,
           type: "limit",
         })
