@@ -47,7 +47,7 @@ const Main = async () => {
       extended: true,
     })
   );
-  const subAccountName = "Reserves";
+  const subAccountName = CONFIG.SUB_ACCOUNT_NAME;
   /**
    * Place Orders On SubAccount
    */

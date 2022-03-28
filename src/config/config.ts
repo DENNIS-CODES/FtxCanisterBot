@@ -8,6 +8,8 @@ if (!process.env.BOT_TOKEN && !process.env.DB_URL) {
 export const CONFIG = {
   SUB_API_KEY: process.env.SUB_API_KEY || "",
   SUB_API_SECRET: process.env.SUB_API_SECRET || "",
+  SUB_ACCOUNT_NAME: process.env.subAccountName || "",
+
 
   /**
    * DB
