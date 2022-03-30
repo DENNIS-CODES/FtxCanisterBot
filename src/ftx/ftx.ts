@@ -233,9 +233,7 @@ export class ftxCanisterWrapper {
               message = `\`${count}:\` Chasing Order \`${id}\`...`;
               console.log(message);
               sendMessage(message);
-              let current_price: any = await this._client.getFuture(
-                this._MARKET
-              );
+              let current_price: any = await this._client.getFuture(symbol);
               let price: any = current_price.result.last;
               if (side.toLowerCase() == "sell") {
                 new_price = price + Math.abs(chase.by_amount || 0);
@@ -559,9 +557,7 @@ export class ftxCanisterWrapper {
                     sendMessage(message);
                     count++;
 
-                    let _future: any = await this._client.getFuture(
-                      this._MARKET
-                    );
+                    let _future: any = await this._client.getFuture(symbol);
 
                     let price: any = _future?.result?.last;
 
@@ -700,7 +696,7 @@ export class ftxCanisterWrapper {
               console.log(message);
               sendMessage(message);
               count++;
-              let _future: any = await this._client.getFuture(this._MARKET);
+              let _future: any = await this._client.getFuture(symbol);
               let price: any = _future?.result?.last;
               if (side.toLowerCase() == "sell") {
                 new_price = price + Math.abs(chase.by_amount || 0);
