@@ -84,7 +84,7 @@ const Main = async () => {
         symbol,
         type,
         target,
-        trailBy,
+        chase,
       });
       try {
         let ftxWrapper;
