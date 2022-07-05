@@ -88,9 +88,14 @@ export class ftxCanisterWrapper {
           .then(async (result: any) => {
             let message = "";
             if (result["success"]) {
-              message = `Placed a new limit order with id: \`${result.result?.id}\``;
+              message = `Placed a new limit order with\n`;
+              message += `\n "id": \`${result.result?.id}\`\n`;
+              message += `\n"Symbol:" \`${result.symbol}`;
+              message += `\n"price": \`${result.price}\n`;
+              message += `\n"Size": \`${result.size}\n`;
+              message += `\n"Side": \`${result.side}`;
               sendMessage(message);
-              console.log(message);
+              console.log("Placing Orders msg", message);
               let id = result["result"]["id"];
               let side = result["result"]["side"];
               let market = result["result"]["market"];
@@ -220,9 +225,14 @@ export class ftxCanisterWrapper {
         .then(async (result: any) => {
           let message = "";
           if (result["success"]) {
-            message = `Placed a new limit order with id: \`${result.result?.id}\``;
+            message = `Placed a new limit order with\n`;
+            message += `\n "id": \`${result.result?.id}\`\n`;
+            message += `\n"Symbol:" \`${result.symbol}`;
+            message += `\n"price": \`${result.price}\n`;
+            message += `\n"Size": \`${result.size}\n`;
+            message += `\n"Side": \`${result.side}`;
             sendMessage(message);
-            console.log(message);
+            console.log("Placing Order msg", message);
             let id = result["result"]["id"];
             let side = result["result"]["side"];
             let market = result["result"]["size"];
@@ -363,9 +373,14 @@ export class ftxCanisterWrapper {
               .then(async (result: any) => {
                 let message = "";
                 if (result["success"]) {
-                  message = `Placed a new limit order with id: \`${result.result?.id}\``;
+                  message = `Placed a new limit order with\n`;
+                  message += `\n "id": \`${result.result?.id}\`\n`;
+                  message += `\n"Symbol:" \`${result.symbol}`;
+                  message += `\n"price": \`${result.price}\n`;
+                  message += `\n"Size": \`${result.size}\n`;
+                  message += `\n"Side": \`${result.side}`;
                   sendMessage(message);
-                  console.log(message);
+                  console.log("Placing Order Msg", message);
                   let id = result["result"]["id"];
                   let side = result["result"]["side"];
                   let market = result["result"]["market"];
@@ -539,15 +554,20 @@ export class ftxCanisterWrapper {
               .then(async (result: any) => {
                 let message = "";
                 if (result["success"]) {
-                  message = `Placed a new limit order with id: \`${result.result?.id}\``;
+                  message = `Placed a new limit order with\n`;
+                  message += `\n "id": \`${result.result?.id}\`\n`;
+                  message += `\n"Symbol:" \`${result.symbol}`;
+                  message += `\n"price": \`${result.price}\n`;
+                  message += `\n"Size": \`${result.size}\n`;
+                  message += `\n"Side": \`${result.side}`;
                   sendMessage(message);
-                  console.log(message);
+                  console.log("placing order:", message);
+
                   let id = result["result"]["id"];
                   let side = result["result"]["side"];
                   let market = result["result"]["market"];
                   let size = result["result"]["size"];
                   let startTime = new Date().getTime();
-
                   let new_price;
 
                   let count = 1;
@@ -681,9 +701,14 @@ export class ftxCanisterWrapper {
         .then(async (result: any) => {
           let message = "";
           if (result["success"]) {
-            message = `Placed a new limit order with id: \`${result.result?.id}\``;
+            message = `Placed a new limit order with\n`;
+            message += `\n "id": \`${result.result?.id}\`\n`;
+            message += `\n"Symbol:" \`${result.symbol}`;
+            message += `\n"price": \`${result.price}\n`;
+            message += `\n"Size": \`${result.size}\n`;
+            message += `\n"Side": \`${result.side}`;
             sendMessage(message);
-            console.log(message);
+            console.log("Placing Order msg", message);
             let id = result["result"]["id"];
             let side = result["result"]["side"];
             let market = result["result"]["market"];
