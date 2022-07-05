@@ -90,10 +90,10 @@ export class ftxCanisterWrapper {
             if (result["success"]) {
               message = `Placed a new limit order with\n`;
               message += `\n "id": \`${result.result?.id}\`\n`;
-              message += `\n"Symbol:" \`${result["result"]["market"]}`;
-              message += `\n"price:" \`${result["result"]["price"]}\n`;
-              message += `\n"Size:" \`${result["result"]["size"]}\n`;
-              message += `\n"Side:" \`${result["result"]["side"]}`;
+              message += `\n"Symbol:" \"${result["result"]["market"]}"`;
+              message += `\n"price:" \"${result["result"]["price"]}"\n`;
+              message += `\n"Size:" \"${result["result"]["size"]}"\n`;
+              message += `\n"Side:" \"${result["result"]["side"]}"`;
               console.log("result msg", result);
 
               sendMessage(message);
@@ -229,10 +229,10 @@ export class ftxCanisterWrapper {
           if (result["success"]) {
             message = `Placed a new limit order with\n`;
             message += `\n "id": \`${result.result?.id}\`\n`;
-            message += `\n"Symbol:" \`${result["result"]["market"]}`;
-            message += `\n"price:" \`${result["result"]["price"]}\n`;
-            message += `\n"Size:" \`${result["result"]["size"]}\n`;
-            message += `\n"Side:" \`${result["result"]["side"]}`;
+            message += `\n"Symbol:" \"${result["result"]["market"]}"`;
+            message += `\n"price:" \"${result["result"]["price"]}"\n`;
+            message += `\n"Size:" \"${result["result"]["size"]}"\n`;
+            message += `\n"Side:" \"${result["result"]["side"]}"`;
             console.log("result msg", result);
             sendMessage(message);
             console.log("Placing Order msg", message);
@@ -378,10 +378,10 @@ export class ftxCanisterWrapper {
                 if (result["success"]) {
                   message = `Placed a new limit order with\n`;
                   message += `\n "id": \`${result.result?.id}\`\n`;
-                  message += `\n"Symbol:" \`${result["result"]["market"]}`;
-                  message += `\n"price:" \`${result["result"]["price"]}\n`;
-                  message += `\n"Size:" \`${result["result"]["size"]}\n`;
-                  message += `\n"Side:" \`${result["result"]["side"]}`;
+                  message += `\n"Symbol:" \"${result["result"]["market"]}"`;
+                  message += `\n"price:" \"${result["result"]["price"]}"\n`;
+                  message += `\n"Size:" \"${result["result"]["size"]}"\n`;
+                  message += `\n"Side:" \"${result["result"]["side"]}"`;
                   sendMessage(message);
                   console.log("Placing Order Msg", message);
                   console.log("result msg", result);
@@ -561,10 +561,10 @@ export class ftxCanisterWrapper {
                 if (result["success"]) {
                   message = `Placed a new limit order with\n`;
                   message += `\n "id": \`${result.result?.id}\`\n`;
-                  message += `\n"Symbol:" \`${result["result"]["market"]}`;
-                  message += `\n"price:" \`${result["result"]["price"]}\n`;
-                  message += `\n"Size:" \`${result["result"]["size"]}\n`;
-                  message += `\n"Side:" \`${result["result"]["side"]}`;
+                  message += `\n"Symbol:" \"${result["result"]["market"]}"`;
+                  message += `\n"price:" \"${result["result"]["price"]}"\n`;
+                  message += `\n"Size:" \"${result["result"]["size"]}"\n`;
+                  message += `\n"Side:" \"${result["result"]["side"]}"`;
                   sendMessage(message);
                   console.log("placing order:", message);
                   console.log("result msg", result);
@@ -709,10 +709,10 @@ export class ftxCanisterWrapper {
           if (result["success"]) {
             message = `Placed a new limit order with\n`;
             message += `\n "id": \`${result.result?.id}\`\n`;
-            message += `\n"Symbol:" \`${result["result"]["market"]}`;
-            message += `\n"price:" \`${result["result"]["price"]}\n`;
-            message += `\n"Size:" \`${result["result"]["size"]}\n`;
-            message += `\n"Side:" \`${result["result"]["side"]}`;
+            message += `\n"Symbol:" \"${result["result"]["market"]}"`;
+            message += `\n"price:" \"${result["result"]["price"]}"\n`;
+            message += `\n"Size:" \"${result["result"]["size"]}"\n`;
+            message += `\n"Side:" \"${result["result"]["side"]}"`;
             sendMessage(message);
             console.log("Placing Order msg", message);
             console.log("result msg", result);
