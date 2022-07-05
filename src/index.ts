@@ -30,6 +30,7 @@ const start = async () => {
 start();
 
 const cors = require("cors");
+const MongoClient = require("mongodb").MongoClient;
 
 const Main = async () => {
   const PORT = 6060;
@@ -48,8 +49,13 @@ const Main = async () => {
     })
   );
   const subAccountName = CONFIG.SUB_ACCOUNT_NAME;
+    //Establish Connection to Mongo Db
+    let url = CONFIG.DB_URL!;
+    // Connect
+    let client = await MongoClient.connect(url);
+    let db = await client.db();
   /**
-   * Place Orders On SubAccount
+   * Place Orders On SubAccount 2
    */
   app.post(
     "/canisterbot/api/v1/orders/cannister",
@@ -71,6 +77,15 @@ const Main = async () => {
         chaseOnce,
       } = req.body;
 
+      db?.collection("DayTraderProV").insertOne(
+        side,
+        quantity,
+        price,
+        symbol,
+        type,
+        target,
+        trailBy,
+      )
       try {
         let ftxWrapper;
         if (numOfOrders == 13) {
