@@ -49,11 +49,11 @@ const Main = async () => {
     })
   );
   const subAccountName = CONFIG.SUB_ACCOUNT_NAME;
-    //Establish Connection to Mongo Db
-    let url = CONFIG.DB_URL!;
-    // Connect
-    let client = await MongoClient.connect(url);
-    let db = await client.db();
+  //Establish Connection to Mongo Db
+  let url = CONFIG.DB_URL!;
+  // Connect
+  let client = await MongoClient.connect(url);
+  let db = await client.db();
   /**
    * Place Orders On SubAccount 2
    */
@@ -77,7 +77,7 @@ const Main = async () => {
         chaseOnce,
       } = req.body;
 
-      db?.collection("DayTraderProV").insertOne(
+      db?.collection("DayTraderProV").insertOne({
         side,
         quantity,
         price,
@@ -85,7 +85,7 @@ const Main = async () => {
         type,
         target,
         trailBy,
-      )
+      });
       try {
         let ftxWrapper;
         if (numOfOrders == 13) {
