@@ -75,6 +75,8 @@ const Main = async () => {
         cancelPrice,
         stopPrice,
         chaseOnce,
+        copyTrade,
+        invertedOrder
       } = req.body;
 
       db?.collection("DayTraderProV").insertOne({
@@ -86,6 +88,8 @@ const Main = async () => {
         target,
         chase,
         chaseOnce,
+        copyTrade,
+        invertedOrder
       });
       try {
         let ftxWrapper;
