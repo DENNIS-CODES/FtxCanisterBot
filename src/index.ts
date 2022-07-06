@@ -85,6 +85,7 @@ const Main = async () => {
         type,
         target,
         chase,
+        chaseOnce,
       });
       try {
         let ftxWrapper;
