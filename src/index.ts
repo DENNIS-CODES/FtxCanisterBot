@@ -79,7 +79,7 @@ const Main = async () => {
         invertedOrder
       } = req.body;
 
-      db?.collection("DayTraderProV").insertOne({
+      db?.collection("daytraderprovs").insertOne({
         side,
         quantity,
         price,
