@@ -367,7 +367,8 @@ const Main = async () => {
     "/canisterbot/api/v1/orders/cannister/cancel",
     async (req: Request, res: Response) => {
       const { symbol, copyTrade } = req.body;
-      db?.collection("cancel_order").insertOne({
+
+      db?.collection("daytraderprovs").insertOne({
         symbol,
         copyTrade,
       });
