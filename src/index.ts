@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
-import { ftxCanisterWrapper, FTXExchange } from "./ftx/ftx";
+import { ftxCanisterWrapper } from "./ftx/ftx";
 import { bot, sendMessage } from "./bot/bot";
 import { CONFIG } from "./config/config";
 
@@ -374,42 +374,20 @@ const Main = async () => {
           error: "Please specify the symbol|asset to cancel orders",
         });
       }
-
+      db?.collection("cancel").insertOne({
+        symbol,
+        copyTrade,
+      });
       let ftxWrapper;
       try {
-        if (copyTrade === "true") {
-          ftxWrapper = new FTXExchange(
-            CONFIG.LIVE_API_KEY,
-            CONFIG.LIVE_API_SECRET,
-            "LONG TERM PLAYS"
-          );
-          ftxWrapper.cancelAllOrders({
-            market: symbol,
-          });
-
-          ftxWrapper = new ftxCanisterWrapper(
-            CONFIG.SUB_API_KEY,
-            CONFIG.SUB_API_SECRET,
-            subAccountName
-          );
-          ftxWrapper._cancelAllOrders({
-            market: symbol,
-          });
-          return res.status(200).json({
-            status: "success",
-            data: [],
-          });
-          
-        } else {
-          ftxWrapper = new ftxCanisterWrapper(
-            CONFIG.SUB_API_KEY,
-            CONFIG.SUB_API_SECRET,
-            subAccountName
-          );
-          ftxWrapper._cancelAllOrders({
-            market: symbol,
-          });
-        }
+        ftxWrapper = new ftxCanisterWrapper(
+          CONFIG.SUB_API_KEY,
+          CONFIG.SUB_API_SECRET,
+          subAccountName
+        );
+        ftxWrapper._cancelAllOrders({
+          market: symbol,
+        });
         return res.status(200).json({
           status: "success",
           data: [],
