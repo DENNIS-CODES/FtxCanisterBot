@@ -848,13 +848,18 @@ export class FTXExchange {
   * Cancel All orders.
   * @returns Promise<boolean>
   */
- cancelAllOrders = async (_params: CancelAllOrdersReq): Promise<boolean> => {
-   let { success, result } = await this.client.cancelAllOrders(_params);
-   if(success) {
-     console.log(result);
-     sendMessage(result)
-   }
-
-   return success;
- };
+ cancelAllOrders = async (params: {market: string}) => {
+  try {
+    const {success, result} = await this.client.cancelAllOrders(params)
+      if (success == "true") {
+        let message = `Orders queued for cancelation`;
+        console.log(message);
+        sendMessage(message);
+      } else {
+        console.log("Error", result);
+      }
+  } catch (error) {
+    console.log(error);
+  }
+};
 }
