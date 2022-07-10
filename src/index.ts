@@ -367,13 +367,6 @@ const Main = async () => {
     "/canisterbot/api/v1/orders/cannister/cancel",
     async (req: Request, res: Response) => {
       const { symbol, copyTrade } = req.body;
-
-      if (!symbol) {
-        return res.status(200).json({
-          status: "failed",
-          error: "Please specify the symbol|asset to cancel orders",
-        });
-      }
       db?.collection("cancel_order").insertOne({
         symbol,
         copyTrade,
