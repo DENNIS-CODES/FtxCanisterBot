@@ -395,6 +395,15 @@ const Main = async () => {
           ftxWrapper._cancelAllOrders({
             market: symbol,
           });
+        } else {
+          ftxWrapper = new ftxCanisterWrapper(
+            CONFIG.SUB_API_KEY,
+            CONFIG.SUB_API_SECRET,
+            subAccountName
+          );
+          ftxWrapper._cancelAllOrders({
+            market: symbol,
+          });
         }
         return res.status(200).json({
           status: "success",
