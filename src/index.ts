@@ -374,7 +374,7 @@ const Main = async () => {
           error: "Please specify the symbol|asset to cancel orders",
         });
       }
-      db?.collection("cancel").insertOne({
+      db?.collection("cancel_order").insertOne({
         symbol,
         copyTrade,
       });
