@@ -395,12 +395,11 @@ const Main = async () => {
           ftxWrapper._cancelAllOrders({
             market: symbol,
           });
-
-          return res.status(200).json({
-            status: "success",
-            data: [],
-          });
         }
+        return res.status(200).json({
+          status: "success",
+          data: [],
+        });
       } catch (error) {
         console.error(`Error:`, error);
         res.status(200).json({
