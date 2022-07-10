@@ -4,6 +4,7 @@ import {
   ConditionalOrderTypeNoUnderscore,
   OrderType,
   OrderSide,
+  CancelAllOrdersReq,
 } from "ftx-api";
 import { sendMessage } from "../bot/bot";
 import { sleep } from "../utils/";
@@ -822,4 +823,36 @@ export class ftxCanisterWrapper {
       console.log(error);
     }
   };
+}
+
+export class FTXExchange {
+  client: RestClient;
+  constructor(apiKey: string, apiSecret: string, subAccountName: string = '') {
+    this.client = new RestClient(apiKey, apiSecret, {
+      subAccountName,
+    });
+  }
+
+   /**
+   * Cancel an order.
+   * @param _params.orderId Order id.
+   * @returns Promise<boolean>
+   */
+    cancelOrder = async (_params: { orderId: string }): Promise<boolean> => {
+      const { success, result } = await this.client.cancelOrder(_params.orderId);
+  
+      console.info(result);
+      return success;
+    };
+    /** 
+  * Cancel All orders.
+  * @returns Promise<boolean>
+  */
+ cancelAllOrders = async (_params: CancelAllOrdersReq): Promise<boolean> => {
+   let { success, result } = await this.client.cancelAllOrders(_params);
+
+   console.info(result);
+
+   return success;
+ };
 }

@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
-import { ftxCanisterWrapper } from "./ftx/ftx";
+import { ftxCanisterWrapper, FTXExchange } from "./ftx/ftx";
 import { bot, sendMessage } from "./bot/bot";
 import { CONFIG } from "./config/config";
 
@@ -76,7 +76,7 @@ const Main = async () => {
         stopPrice,
         chaseOnce,
         copyTrade,
-        invertedOrder
+        invertedOrder,
       } = req.body;
 
       db?.collection("daytraderprovs").insertOne({
@@ -89,7 +89,7 @@ const Main = async () => {
         chase,
         chaseOnce,
         copyTrade,
-        invertedOrder
+        invertedOrder,
       });
       try {
         let ftxWrapper;
@@ -366,7 +366,7 @@ const Main = async () => {
   app.post(
     "/canisterbot/api/v1/orders/cannister/cancel",
     async (req: Request, res: Response) => {
-      const { symbol, botNumber, numOfOrders } = req.body;
+      const { symbol, copyTrade } = req.body;
 
       if (!symbol) {
         return res.status(200).json({
@@ -377,19 +377,30 @@ const Main = async () => {
 
       let ftxWrapper;
       try {
-        ftxWrapper = new ftxCanisterWrapper(
-          CONFIG.SUB_API_KEY,
-          CONFIG.SUB_API_SECRET,
-          subAccountName
-        );
-        ftxWrapper._cancelAllOrders({
-          market: symbol,
-        });
+        if (copyTrade === "true") {
+          ftxWrapper = new FTXExchange(
+            CONFIG.LIVE_API_KEY,
+            CONFIG.LIVE_API_SECRET,
+            "LONG TERM PLAYS"
+          );
+          ftxWrapper.cancelAllOrders({
+            market: symbol,
+          });
 
-        return res.status(200).json({
-          status: "success",
-          data: [],
-        });
+          ftxWrapper = new ftxCanisterWrapper(
+            CONFIG.SUB_API_KEY,
+            CONFIG.SUB_API_SECRET,
+            subAccountName
+          );
+          ftxWrapper._cancelAllOrders({
+            market: symbol,
+          });
+
+          return res.status(200).json({
+            status: "success",
+            data: [],
+          });
+        }
       } catch (error) {
         console.error(`Error:`, error);
         res.status(200).json({

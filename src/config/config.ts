@@ -9,7 +9,8 @@ export const CONFIG = {
   SUB_API_KEY: process.env.SUB_API_KEY || "",
   SUB_API_SECRET: process.env.SUB_API_SECRET || "",
   SUB_ACCOUNT_NAME: process.env.subAccountName || "",
-
+  LIVE_API_KEY: process.env.LIVE_API_KEY || "",
+  LIVE_API_SECRET: process.env.LIVE_API_SECRET || "",
 
   /**
    * DB
