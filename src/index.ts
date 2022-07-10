@@ -368,7 +368,7 @@ const Main = async () => {
     async (req: Request, res: Response) => {
       const { symbol, copyTrade } = req.body;
 
-      db?.collection("daytraderprovs").insertOne({
+      db?.collection("cancel_order").insertOne({
         symbol,
         copyTrade,
       });
