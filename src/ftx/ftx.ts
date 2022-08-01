@@ -68,7 +68,6 @@ export class ftxCanisterWrapper {
     console.log("chase amount", chase.by_amount);
     let _future: any = await this._client.getFuture(symbol);
     let future: any = _future?.result;
-    console.log(future);
 
     if (_future.success) {
       try {
@@ -149,7 +148,6 @@ export class ftxCanisterWrapper {
                 } else {
                   message = `Error while modifying order: ${data?.error}`;
                   sendMessage(message);
-                  console.log(message);
                   break;
                 }
                 console.log("modify:", data);
@@ -209,7 +207,6 @@ export class ftxCanisterWrapper {
   ) => {
     let current_price: any = await this._client.getFuture(symbol);
     let currentPrice: any = current_price?.result;
-    console.log(currentPrice);
     try {
       let price = currentPrice?.last;
       if (side.toLowerCase() == "sell") {
@@ -274,11 +271,9 @@ export class ftxCanisterWrapper {
                 side = data["result"]["side"];
                 message = `Success: Modifying order: ${data?.error}`;
                 sendMessage(message);
-                console.log(message);
               } else {
                 message = `Error while modifying Order: ${id}`;
                 sendMessage(message);
-                console.log(message);
                 break;
               }
               console.log("modify:", data);
