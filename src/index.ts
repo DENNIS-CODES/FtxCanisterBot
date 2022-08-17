@@ -33,7 +33,7 @@ const cors = require("cors");
 const MongoClient = require("mongodb").MongoClient;
 
 const Main = async () => {
-  const PORT = 6060;
+  const PORT = 7070;
   const app = express();
 
   app.use(express());
@@ -68,12 +68,8 @@ const Main = async () => {
         type,
         numOfOrders,
         chase,
-        market,
-        trailBy,
+        trigger,
         target,
-        botNumber,
-        cancelPrice,
-        stopPrice,
         chaseOnce,
         copyTrade,
         invertedOrder,
@@ -93,257 +89,57 @@ const Main = async () => {
       });
       try {
         let ftxWrapper;
-        if (numOfOrders == 13) {
+        if (CONFIG.BOX_NUMBER_ONE.includes(numOfOrders)) {
           // First two orders
           ftxWrapper = new ftxCanisterWrapper(
             CONFIG.SUB_API_KEY,
             CONFIG.SUB_API_SECRET,
             subAccountName
           );
-          if (chaseOnce == "true") {
-            await ftxWrapper._chaseOnce(
-              side,
-              quantity,
-              symbol,
-              price,
-              type,
-              chase
-            );
-          } else {
-            await ftxWrapper._placeLimitOrder(
-              side,
-              quantity,
-              symbol,
-              price,
-              symbol,
-              type,
-              chase
-            );
+          let orderPlaced: any = await ftxWrapper._placeOrder({
+            side: side,
+            size: quantity,
+            price: price,
+            market: symbol,
+            type: type,
+            chase: chase,
+          });
+          if (chaseOnce == "false") {
+            await ftxWrapper.chaseOrder({
+              id: orderPlaced.id,
+              side: orderPlaced.side,
+              market: orderPlaced.market,
+              trailByBPS: chase.by_amount,
+              maxRetries: chase.maxRetries,
+            });
           }
-        } else if (numOfOrders == 14) {
+          return res.status(200).json({
+            status: "success",
+            data: [],
+          });
+        } else if (CONFIG.BOX_NUMBER.includes(numOfOrders)) {
           // LossProtection Orders
           ftxWrapper = new ftxCanisterWrapper(
             CONFIG.SUB_API_KEY,
             CONFIG.SUB_API_SECRET,
             subAccountName
           );
-          ftxWrapper._lossProtection(
-            side,
-            quantity,
-            trailBy,
-            type,
-            target,
-            chase,
-            symbol
-          );
-        } else if (numOfOrders == 15) {
-          ftxWrapper = new ftxCanisterWrapper(
-            CONFIG.SUB_API_KEY,
-            CONFIG.SUB_API_SECRET,
-            subAccountName
-          );
-          ftxWrapper._minProfit(
-            side,
-            quantity,
-            trailBy,
-            type,
-            target,
-            chase,
-            symbol
-          );
-        } else if (numOfOrders == 16) {
-          ftxWrapper = new ftxCanisterWrapper(
-            CONFIG.SUB_API_KEY,
-            CONFIG.SUB_API_SECRET,
-            subAccountName
-          );
-          ftxWrapper._exitProfit(
-            side,
-            quantity,
-            symbol,
-            price,
-            symbol,
-            type,
-            chase
-          );
-        } else if (numOfOrders == 17) {
-          // First two orders
-          ftxWrapper = new ftxCanisterWrapper(
-            CONFIG.SUB_API_KEY,
-            CONFIG.SUB_API_SECRET,
-            subAccountName
-          );
-          if (chaseOnce == "true") {
-            await ftxWrapper._chaseOnce(
-              side,
-              quantity,
-              symbol,
-              price,
-              type,
-              chase
-            );
-          } else {
-            await ftxWrapper._placeLimitOrder(
-              side,
-              quantity,
-              symbol,
-              price,
-              symbol,
-              type,
-              chase
-            );
-          }
-        } else if (numOfOrders == 18) {
-          // LossProtection Orders
-          ftxWrapper = new ftxCanisterWrapper(
-            CONFIG.SUB_API_KEY,
-            CONFIG.SUB_API_SECRET,
-            subAccountName
-          );
-          ftxWrapper._lossProtection(
-            side,
-            quantity,
-            trailBy,
-            type,
-            target,
-            chase,
-            symbol
-          );
-        } else if (numOfOrders == 19) {
-          ftxWrapper = new ftxCanisterWrapper(
-            CONFIG.SUB_API_KEY,
-            CONFIG.SUB_API_SECRET,
-            subAccountName
-          );
-          ftxWrapper._minProfit(
-            side,
-            quantity,
-            trailBy,
-            type,
-            target,
-            chase,
-            symbol
-          );
-          console.log(cancelPrice);
-        } else if (numOfOrders == 20) {
-          ftxWrapper = new ftxCanisterWrapper(
-            CONFIG.SUB_API_KEY,
-            CONFIG.SUB_API_SECRET,
-            subAccountName
-          );
-          ftxWrapper._exitProfit(
-            side,
-            quantity,
-            market,
-            price,
-            symbol,
-            type,
-            chase
-          );
-        } else if (numOfOrders == 21) {
-          // First two orders
-          ftxWrapper = new ftxCanisterWrapper(
-            CONFIG.SUB_API_KEY,
-            CONFIG.SUB_API_SECRET,
-            subAccountName
-          );
-          if (chaseOnce == "true") {
-            await ftxWrapper._chaseOnce(
-              side,
-              quantity,
-              symbol,
-              price,
-              type,
-              chase
-            );
-          } else {
-            await ftxWrapper._placeLimitOrder(
-              side,
-              quantity,
-              symbol,
-              price,
-              symbol,
-              type,
-              chase
-            );
-          }
-        } else if (numOfOrders == 22) {
-          // LossProtection Orders
-          ftxWrapper = new ftxCanisterWrapper(
-            CONFIG.SUB_API_KEY,
-            CONFIG.SUB_API_SECRET,
-            subAccountName
-          );
-          ftxWrapper._lossProtection(
-            side,
-            quantity,
-            trailBy,
-            type,
-            target,
-            chase,
-            symbol
-          );
-        } else if (numOfOrders == 23) {
-          ftxWrapper = new ftxCanisterWrapper(
-            CONFIG.SUB_API_KEY,
-            CONFIG.SUB_API_SECRET,
-            subAccountName
-          );
-          ftxWrapper._minProfit(
-            side,
-            quantity,
-            trailBy,
-            type,
-            target,
-            chase,
-            symbol
-          );
-        } else if (numOfOrders == 24) {
-          ftxWrapper = new ftxCanisterWrapper(
-            CONFIG.SUB_API_KEY,
-            CONFIG.SUB_API_SECRET,
-            subAccountName
-          );
-          ftxWrapper._exitProfit(
-            side,
-            quantity,
-            market,
-            price,
-            symbol,
-            type,
-            chase
-          );
-        } else if (numOfOrders == 25) {
-          ftxWrapper = new ftxCanisterWrapper(
-            CONFIG.SUB_API_KEY,
-            CONFIG.SUB_API_SECRET,
-            subAccountName
-          );
-          ftxWrapper._minProfit(
-            side,
-            quantity,
-            trailBy,
-            type,
-            target,
-            chase,
-            symbol
-          );
-        } else if (numOfOrders == 26) {
-          // LossProtection Orders
-          ftxWrapper = new ftxCanisterWrapper(
-            CONFIG.SUB_API_KEY,
-            CONFIG.SUB_API_SECRET,
-            subAccountName
-          );
-          ftxWrapper._lossProtection(
-            side,
-            quantity,
-            trailBy,
-            type,
-            target,
-            chase,
-            symbol
-          );
+          const orderPlaced: any = await ftxWrapper.placeConditionalOrders({
+            side: side,
+            size: quantity,
+            type: type,
+            price: target,
+            chase: chase,
+            market: symbol,
+            trigger: trigger,
+          });
+          await ftxWrapper.chaseOrder({
+            id: orderPlaced.id,
+            side: orderPlaced.side,
+            market: orderPlaced.market,
+            trailByBPS: chase.trailByBPS,
+            maxRetries: chase.howLongInSec,
+          });
         }
 
         return res.status(200).json({

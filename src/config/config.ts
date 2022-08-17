@@ -16,7 +16,9 @@ export const CONFIG = {
    * DB
    */
   DB_URL: process.env.DB_URL!,
-
+  BOX_NUMBER: [2, 3, 6, 7, 8, 10, 11],
+  BOX_NUMBER_ONE: [1, 5, 9],
+  MAX_RETRIES: 90,
   /**
    * Telegram
    */

@@ -1,12 +1,12 @@
 import {
   WebsocketClient,
   RestClient,
-  ConditionalOrderTypeNoUnderscore,
   OrderType,
   OrderSide,
-  CancelAllOrdersReq,
 } from "ftx-api";
 import { sendMessage } from "../bot/bot";
+import { CONFIG } from "../config/config";
+import { Order } from "../types";
 import { sleep } from "../utils/";
 
 export class ftxCanisterWrapper {
@@ -30,20 +30,23 @@ export class ftxCanisterWrapper {
 
   _MARKET = "BTC-PERP";
 
-  get ws() {
-    return this._ws;
-  }
 
   setClosePrice(price: number) {
     this._closePrice = price;
     console.log(this._closePrice);
     console.log("Bot Stopping and restarting");
     process.exit(1);
-    // if (this._closePrice === 50) {
-    //   console.log("Bot Stopping and restarting");
-
-    // }
   }
+
+  getPrice = async (symbol: string): Promise<number | null> => {
+    symbol = this.getMarket(symbol);
+    const { success, result } = await this._client.getFuture(symbol);
+
+    if (success) {
+      return result.last;
+    }
+    return null;
+  };
 
   // get client Position
 
@@ -51,754 +54,198 @@ export class ftxCanisterWrapper {
     return this._client.getPositions;
   };
 
-  _placeLimitOrder = async (
-    side: OrderSide,
-    size: number,
-    symbol: string,
-    market: string,
-    price: number,
-    type: OrderType,
+  _placeOrder = async (_params: {
+    side: OrderSide;
+    size: number;
+    market: string;
+    price: number;
+    type: OrderType;
     chase: {
       by_amount: number;
-      howLongInSec: number;
-      chaseTimeLimit: number;
-      sleep: number;
+    };
+  }): Promise<Order | null> => {
+    let _future: any = await this._client.getFuture(_params.market);
+    let future: any = _future?.result?.last;
+    _params.market = this.getMarket(_params.market);
+    _params.size = _params.size / future;
+    _params.price =
+      _params.side === "buy"
+        ? future - _params.chase.by_amount
+        : future + _params.chase.by_amount;
+    const { success, result } = await this._client.placeOrder(_params);
+    if (success) {
+      sendMessage(`placed ${result.side} order, ${result.id}`);
+      return {
+        id: result.id,
+        market: result.market,
+        side: result.side,
+        type: result.type,
+        price: result.price,
+        quantity: result.size,
+        createdAt: result.createdAt,
+      };
     }
-  ) => {
-    console.log("chase amount", chase.by_amount);
-    let _future: any = await this._client.getFuture(symbol);
-    let future: any = _future?.result;
-
-    if (_future.success) {
-      try {
-        let new_price;
-        if (side.toLowerCase() == "sell") {
-          new_price = future?.last + Math.abs(chase?.by_amount || 0);
-        } else {
-          new_price = future?.last - Math.abs(chase?.by_amount || 0);
-        }
-        await this._client
-          .placeOrder({
-            side,
-            size: size / parseFloat(`${future?.last}`), // Converting size orders into USD
-            market: symbol,
-            price: new_price,
-            type: "limit",
-          })
-          .then(async (result: any) => {
-            let message = "";
-            if (result["success"]) {
-              message = `Placed a new limit order with\n`;
-              message += `\n "id": \`${result.result?.id}\`\n`;
-              message += `\n"Symbol:" \`${result["result"]["market"]}\`\n`
-              message += `\n"price:" \`${result["result"]["price"]}\`\n`;
-              message += `\n"Size:" \`${result["result"]["size"]}\`\n`;
-              message += `\n"Side:" \`${result["result"]["side"]}\`\n`;
-              console.log("result msg", result);
-
-              sendMessage(message);
-              console.log("Placing Orders msg", message);
-              let id = result["result"]["id"];
-              let side = result["result"]["side"];
-              let market = result["result"]["market"];
-              let size = result["result"]["size"];
-              let startTime = new Date().getTime();
-              let new_price;
-              let count = 1;
-
-              while (chase) {
-                message = `\`${count}:\` Chasing order \`${id}\`...`;
-                console.log(message);
-                sendMessage(message);
-
-                count++;
-
-                let _future: any = await this._client.getFuture(symbol);
-                let price: any = _future?.result?.last;
-                if (side.toLowerCase() == "sell") {
-                  new_price = price + Math.abs(chase?.by_amount || 0);
-                } else {
-                  new_price = price - Math.abs(chase?.by_amount || 0);
-                }
-                let data;
-                try {
-                  data = await this._client.modifyOrder({
-                    orderId: id,
-                    price: new_price,
-                  });
-                } catch (error: any) {
-                  let rsn = error?.body?.error;
-                  console.log("Error:", rsn);
-                  if (rsn?.includes("Must modify either price or size")) {
-                    sendMessage(message);
-                    continue;
-                  }
-                  if (rsn?.includes("Size too small for provide")) {
-                    message = `Order is now in position`;
-                    sendMessage(message);
-                    break;
-                  }
-                }
-
-                if (data?.success) {
-                  id = data["result"]["id"];
-                  side = data["result"]["side"];
-                  message = `Success: modified order \`${id}\``;
-                  sendMessage(message);
-                } else {
-                  message = `Error while modifying order: ${data?.error}`;
-                  sendMessage(message);
-                  break;
-                }
-                console.log("modify:", data);
-                let current = new Date().getTime();
-                let diff = current - startTime;
-                if (
-                  chase.howLongInSec >= chase.chaseTimeLimit &&
-                  diff >= chase.howLongInSec * 1_000
-                ) {
-                  // we go market
-                  await this._client.placeOrder({
-                    side,
-                    size,
-                    market,
-                    price,
-                    type: "market",
-                  });
-                  break;
-                }
-                if (
-                  chase.howLongInSec <= chase.chaseTimeLimit &&
-                  diff >= chase.howLongInSec * 1_000
-                ) {
-                  // we cancel order
-                  await this._client.cancelOrder(id);
-                  break;
-                }
-                //  modify at 3 seconds interval
-                await sleep(chase.sleep);
-              }
-            } else {
-              console.log("Error", result);
-            }
-          })
-          .catch((err: any) => {
-            console.error(`Error:`, err);
-          });
-      } catch (error) {
-        console.log("Errors", error);
-      }
-    }
-    await sleep(250);
+    return null;
   };
 
-  _chaseOnce = async (
-    side: OrderSide,
-    size: number,
-    symbol: string,
-    type: OrderSide,
-    target: number,
-    chase: {
-      by_amount: number;
-      howLongInSec: number;
-      chaseTimeLimit: number;
-      sleep: number;
+  chaseOrder = async (
+    _params: {
+      id: string;
+      market: string;
+      side: "buy" | "sell";
+      trailByBPS?: number;
+      maxRetries?: number;
+    },
+    _extraParams?: {
+      tgId?: number;
     }
-  ) => {
-    let current_price: any = await this._client.getFuture(symbol);
-    let currentPrice: any = current_price?.result;
-    try {
-      let price = currentPrice?.last;
-      if (side.toLowerCase() == "sell") {
-        price = price + Math.abs(chase?.by_amount || 0);
-      } else {
-        price = price - Math.abs(chase?.by_amount || 0);
+  ): Promise<void> => {
+    let count = 0;
+    _params.market = this.getMarket(_params.market);
+
+    let { id, market, side, trailByBPS, maxRetries } = _params;
+    let { tgId } = _extraParams || {};
+
+    const MAX_RETRIES = maxRetries ?? CONFIG.MAX_RETRIES;
+    while (true) {
+      await sleep(10000);
+      console.log(`---`.repeat(10));
+      let msg = `Chasing order ${id}`;
+      sendMessage(msg);
+
+      let price = await this.getPrice(market);
+      if (price === null) {
+        msg = `Could not get price for ${market}`;
+        sendMessage(msg);
+        console.error(msg);
+        return;
       }
-      await this._client
-        .placeOrder({
-          side,
-          size: size / parseFloat(`${currentPrice?.last}`),
-          market: symbol,
+
+      // trailByBPS is the value to trail by in percent
+      trailByBPS = trailByBPS ?? 0.01;
+      price = side === "buy" ? price - trailByBPS : price + trailByBPS;
+
+      try {
+        const { success, result, error } = await this._client.modifyOrder({
+          orderId: id.toString(),
           price,
-          type: "limit",
-        })
-        .then(async (result: any) => {
-          let message = "";
-          if (result["success"]) {
-            message = `Placed a new limit order with\n`;
-            message += `\n "id": \`${result.result?.id}\`\n`;
-            message += `\n"Symbol:" \`${result["result"]["market"]}\`\n`
-            message += `\n"price:" \`${result["result"]["price"]}\`\n`;
-            message += `\n"Size:" \`${result["result"]["size"]}\`\n`;
-            message += `\n"Side:" \`${result["result"]["side"]}\`\n`;
-            console.log("result msg", result);
-            sendMessage(message);
-            console.log("Placing Order msg", message);
-            let id = result["result"]["id"];
-            let side = result["result"]["side"];
-            let market = result["result"]["size"];
-            let new_price;
-            let startTime = new Date().getTime();
-            let count = 1;
-            while (chase) {
-              message = `\`${count}:\` Chasing Order \`${id}\`...`;
-              console.log(message);
-              sendMessage(message);
-              let current_price: any = await this._client.getFuture(symbol);
-              let price: any = current_price.result.last;
-              if (side.toLowerCase() == "sell") {
-                new_price = price + Math.abs(chase.by_amount || 0);
-              } else {
-                new_price = price - Math.abs(chase.by_amount || 0);
-              }
-              let data;
-              try {
-                data = await this._client.modifyOrder({
-                  orderId: id,
-                  price: new_price,
-                });
-              } catch (error: any) {
-                let rsn = error?.body?.error;
-                console.log("Error: ", rsn);
-                if (rsn?.includes("Size too small for provide")) {
-                  message = `Order is now in position`;
-                  sendMessage(message);
-                  break;
-                }
-              }
-              if (data?.success) {
-                id = data["result"]["id"];
-                side = data["result"]["side"];
-                message = `Success: Modifying order: ${data?.error}`;
-                sendMessage(message);
-              } else {
-                message = `Error while modifying Order: ${id}`;
-                sendMessage(message);
-                break;
-              }
-              console.log("modify:", data);
-              let current = new Date().getTime();
-              let diff = current - startTime;
-              if (
-                chase.howLongInSec >= chase.chaseTimeLimit &&
-                diff >= chase.howLongInSec * 1_000
-              ) {
-                await this._client.cancelOrder(id);
-                break;
-              }
-              await sleep(chase.sleep);
-              break;
-            }
-          } else {
-            console.log("Error: ", result);
-          }
-        })
-        .catch((err: any) => {
-          console.error("Errors", err);
         });
-    } catch (error) {
-      console.log(error);
+        if (success) {
+          id = result.id;
+          market = result.market;
+          side = result.side;
+          continue;
+        } else {
+          console.error(`Could not chase order ${id}`, error);
+        }
+      } catch (error: any) {
+        let rsn = error?.body?.error;
+        console.log("Error:", rsn);
+        if (rsn?.includes("Must modify either price or size")) {
+          continue;
+        }
+        if (rsn?.includes("Size too small for provide")) {
+          msg = `Order is now in position ✔️`;
+          sendMessage(msg);
+
+          break;
+        }
+      }
+
+      count++;
+      console.log(`Retry count: ${count}`);
+      if (count > MAX_RETRIES) {
+        msg = `Max retries\\/chases reached for order ${id}. Chased order ${count} times.`;
+        await this._client.cancelOrder(id);
+        sendMessage(msg);
+        break;
+      }
+
+      // Wait for a bit before trying again
+      await sleep(1000);
     }
   };
 
-  _lossProtection = async (
-    side: OrderSide,
-    size: number,
-    trigger: number,
-    type: OrderType,
-    target: number,
+  placeConditionalOrders = async (params: {
+    side: OrderSide;
+    size: number;
+    trigger: number;
+    type: OrderType;
+    price: number;
+    market: string;
     chase: {
       by_amount: number;
       howLongInSec: number;
       chaseTimeLimit: number;
       sleep: number;
-    },
-    symbol: string
-  ) => {
-    let new_price;
-    let pass = true;
-    let newPrice = target;
-    console.log("Trigger Price:", newPrice);
-    console.log("chase amount", chase?.by_amount);
-    let _future: any = await this._client.getFuture(symbol);
-    let future: any = _future?.result;
+    };
+  }): Promise<Order | null> => {
+    let _future: any = await this._client.getFuture(params.market);
+    let future: any = _future?.result?.last;
     await sleep(250);
-    console.log("Live Price:", future.last);
-
-    let futureLastPrice: any = future?.last;
-    loop1: while (future?.last) {
-      loop2: if (this._closePrice === 50) {
-        console.log("BotStopped");
-        pass = false;
-        futureLastPrice = false;
-        break loop1;
+    console.log("Live Price:", future);
+    while (future) {
+      if (this._closePrice === 50) {
+        process.exit(1);
       }
-      let _future: any = await this._client.getFuture(symbol);
-      let future: any = _future?.result;
+      let newPrice: any = await this._client.getFuture(params.market);
+      let price: any = newPrice?.result.last;
       try {
-        if (side == "sell") {
-          new_price = future?.last + Math.abs(chase?.by_amount || 0);
-        } else {
-          new_price = future?.last - Math.abs(chase?.by_amount || 0);
-        }
+        params.size = params.size / price;
         await sleep(2500);
-        console.log("Bot Started and live price is:", future?.last);
-        console.log("target:", newPrice);
+        console.log("Bot Started and live price is:", price);
 
-        let calc1Above = future?.last - newPrice;
-        let calc2Above = newPrice - future?.last;
+        let calc1Above = future - newPrice;
+        let calc2Above = newPrice - future;
 
         console.log("calc1Above:", calc1Above);
         console.log("calc2Above:", calc2Above);
 
-        let trigger = 10;
+        params.price =
+          params.side === "buy"
+            ? price - params.chase?.by_amount
+            : price + params.chase?.by_amount;
         if (calc1Above > 0 || calc2Above > 0) {
-          if (calc1Above <= trigger && calc2Above <= trigger) {
+          if (calc1Above <= params.trigger && calc2Above <= params.trigger) {
             let message = "";
-            message = `Target Price is Hit: \`${
-              future.last
-            }\`, Target Diffrence: ${calc1Above || calc2Above}`;
+            message = `Target Price is Hit: \`${newPrice}\`, Target Diffrence: ${
+              calc1Above || calc2Above
+            }`;
             sendMessage(message);
-            console.log(message);
-
-            await this._client
-              .placeOrder({
-                side,
-                size: size / parseFloat(`${future?.last}`),
-                market: symbol,
-                price: new_price,
-                type: "limit",
-              })
-              .then(async (result: any) => {
-                let message = "";
-                if (result["success"]) {
-                  message = `Placed a new limit order with\n`;
-                  message += `\n "id": \`${result.result?.id}\`\n`;
-                  message += `\n"Symbol:" \`${result["result"]["market"]}\`\n`
-                  message += `\n"price:" \`${result["result"]["price"]}\`\n`;
-                  message += `\n"Size:" \`${result["result"]["size"]}\`\n`;
-                  message += `\n"Side:" \`${result["result"]["side"]}\`\n`;
-                  sendMessage(message);
-                  console.log("Placing Order Msg", message);
-                  console.log("result msg", result);
-
-                  let id = result["result"]["id"];
-                  let side = result["result"]["side"];
-                  let market = result["result"]["market"];
-                  let size = result["result"]["size"];
-                  let startTime = new Date().getTime();
-
-                  let new_price;
-
-                  let count = 1;
-                  while (chase) {
-                    message = `\`${count}:\` Chasing order \`${id}\`...`;
-                    console.log(message);
-                    sendMessage(message);
-                    count++;
-
-                    let _future: any = await this._client.getFuture(symbol);
-
-                    let price: any = _future?.result?.last;
-
-                    if (side.toLowerCase() == "sell") {
-                      new_price = price + Math.abs(chase.by_amount || 0);
-                    } else {
-                      new_price = price - Math.abs(chase.by_amount || 0);
-                    }
-                    let data;
-
-                    try {
-                      data = await this._client.modifyOrder({
-                        orderId: id,
-                        price: new_price,
-                      });
-                    } catch (error: any) {
-                      let rsn = error?.body?.error;
-                      console.log("Error:", rsn);
-
-                      if (rsn?.includes("Must modify either price or size")) {
-                        sendMessage(message);
-                        continue;
-                      }
-
-                      if (rsn?.includes("Size too small for provide")) {
-                        message = `Order is now in position`;
-                        sendMessage(message);
-                        break;
-                      }
-                    }
-
-                    if (data?.success) {
-                      id = data["result"]["id"];
-                      side = data["result"]["side"];
-                      message = `Success: modified order \`${id}\``;
-                      sendMessage(message);
-                    } else {
-                      message = `Error while modifying order: ${data?.error}`;
-                      sendMessage(message);
-                      console.log(message);
-                      break;
-                    }
-                    console.log("modify:", data);
-
-                    let current = new Date().getTime();
-
-                    let diff = current - startTime;
-
-                    if (
-                      chase.howLongInSec >= chase.chaseTimeLimit &&
-                      diff >= chase.howLongInSec * 1_000
-                    ) {
-                      // we go market
-                      await this._client.placeOrder({
-                        side,
-                        size,
-                        market,
-                        price,
-                        type: "market",
-                      });
-                      break;
-                    }
-                    if (
-                      chase.howLongInSec <= chase.chaseTimeLimit &&
-                      diff >= chase.howLongInSec * 1_000
-                    ) {
-                      // we cancel order
-                      await this._client.cancelOrder(id);
-                      break;
-                    }
-                    //  modify at 3 seconds interval
-                    await sleep(chase.sleep);
-                  }
-                }
-                process.exit(1);
-              })
-              .catch((err: any) => {
-                console.error(`Error:`, err);
-              });
+            const { success, result } = await this._client.placeOrder(params);
+            if (success) {
+              sendMessage(`Order placed: ${result.id}`);
+              return {
+                id: result.id,
+                market: result.market,
+                side: result.side,
+                type: result.type,
+                price: result.price,
+                quantity: result.size,
+                createdAt: result.createdAt,
+              };
+            }
           }
         }
       } catch (error) {
         console.log("Errors", error);
       }
+      break;
     }
-  };
-  _minProfit = async (
-    side: OrderSide,
-    size: number,
-    trigger: number,
-    type: OrderType,
-    target: number,
-    chase: {
-      by_amount: number;
-      howLongInSec: number;
-      chaseTimeLimit: number;
-      sleep: number;
-    },
-    symbol: string
-  ) => {
-    let new_price;
-    let pass = true;
-    let newPrice = target;
-    console.log("Trigger Price:", newPrice);
-    console.log("chase amount", chase?.by_amount);
-    let _future: any = await this._client.getFuture(symbol);
-    let future: any = _future?.result;
-    await sleep(250);
-    console.log("Live Price:", future.last);
-
-    let futureLastPrice: any = future?.last;
-    loop1: while (future?.last) {
-      loop2: if (this._closePrice === 50) {
-        console.log("BotStopped");
-        pass = false;
-        futureLastPrice = false;
-        break loop1;
-      }
-      let _future: any = await this._client.getFuture(symbol);
-      let future: any = _future?.result;
-      try {
-        if (side == "sell") {
-          new_price = future?.last + Math.abs(chase?.by_amount || 0);
-        } else {
-          new_price = future?.last - Math.abs(chase?.by_amount || 0);
-        }
-        await sleep(2500);
-        console.log("Bot Started and live price is:", future?.last);
-        console.log("target:", newPrice);
-
-        let calc1Above = future?.last - newPrice;
-        let calc2Above = newPrice - future?.last;
-
-        console.log("calc1Above:", calc1Above);
-        console.log("calc2Above:", calc2Above);
-
-        let trigger = 10;
-        if (calc1Above > 0 || calc2Above > 0) {
-          if (calc1Above <= trigger && calc2Above <= trigger) {
-            let message = "";
-            message = `Target Price is Hit: \`${
-              future.last
-            }\`, Target Diffrence: ${calc1Above || calc2Above}`;
-            sendMessage(message);
-            console.log(message);
-
-            await this._client
-              .placeOrder({
-                side,
-                size: size / parseFloat(`${future?.last}`),
-                market: symbol,
-                price: new_price,
-                type: "limit",
-              })
-              .then(async (result: any) => {
-                let message = "";
-                if (result["success"]) {
-                  message = `Placed a new limit order with\n`;
-                  message += `\n "id": \`${result.result?.id}\`\n`;
-                  message += `\n"Symbol:" \`${result["result"]["market"]}\`\n`
-                  message += `\n"price:" \`${result["result"]["price"]}\`\n`;
-                  message += `\n"Size:" \`${result["result"]["size"]}\`\n`;
-                  message += `\n"Side:" \`${result["result"]["side"]}\`\n`;
-                  sendMessage(message);
-                  console.log("placing order:", message);
-                  console.log("result msg", result);
-
-                  let id = result["result"]["id"];
-                  let side = result["result"]["side"];
-                  let market = result["result"]["market"];
-                  let size = result["result"]["size"];
-                  let startTime = new Date().getTime();
-                  let new_price;
-
-                  let count = 1;
-                  while (chase) {
-                    message = `\`${count}:\` Chasing order \`${id}\`...`;
-                    console.log(message);
-                    sendMessage(message);
-                    count++;
-
-                    let _future: any = await this._client.getFuture(symbol);
-
-                    let price: any = _future?.result?.last;
-
-                    if (side.toLowerCase() == "sell") {
-                      new_price = price + Math.abs(chase.by_amount || 0);
-                    } else {
-                      new_price = price - Math.abs(chase.by_amount || 0);
-                    }
-                    let data;
-
-                    try {
-                      data = await this._client.modifyOrder({
-                        orderId: id,
-                        price: new_price,
-                      });
-                    } catch (error: any) {
-                      let rsn = error?.body?.error;
-                      console.log("Error:", rsn);
-
-                      if (rsn?.includes("Must modify either price or size")) {
-                        sendMessage(message);
-                        continue;
-                      }
-
-                      if (rsn?.includes("Size too small for provide")) {
-                        message = `Order is now in position`;
-                        sendMessage(message);
-                        break;
-                      }
-                    }
-
-                    if (data?.success) {
-                      id = data["result"]["id"];
-                      side = data["result"]["side"];
-                      message = `Success: modified order \`${id}\``;
-                      sendMessage(message);
-                    } else {
-                      message = `Error while modifying order: ${data?.error}`;
-                      sendMessage(message);
-                      console.log(message);
-                      break;
-                    }
-                    console.log("modify:", data);
-
-                    let current = new Date().getTime();
-
-                    let diff = current - startTime;
-
-                    if (
-                      chase.howLongInSec >= chase.chaseTimeLimit &&
-                      diff >= chase.howLongInSec * 1_000
-                    ) {
-                      // we go market
-                      await this._client.placeOrder({
-                        side,
-                        size,
-                        market,
-                        price,
-                        type: "market",
-                      });
-                      break;
-                    }
-                    if (
-                      chase.howLongInSec <= chase.chaseTimeLimit &&
-                      diff >= chase.howLongInSec * 1_000
-                    ) {
-                      // we cancel order
-                      await this._client.cancelOrder(id);
-                      break;
-                    }
-                    //  modify at 3 seconds interval
-                    await sleep(chase.sleep);
-                  }
-                }
-                process.exit(1);
-              })
-              .catch((err: any) => {
-                console.error(`Error:`, err);
-              });
-          }
-        }
-      } catch (error) {
-        console.log("Errors", error);
-      }
-    }
+    return null;
   };
 
-  _exitProfit = async (
-    side: OrderSide,
-    size: number,
-    symbol: string,
-    market: string,
-    price: number,
-    type: OrderType,
-    chase: {
-      by_amount: number;
-      howLongInSec: number;
-      chaseTimeLimit: number;
-      sleep: number;
+  getMarket = (symbol: string) => {
+    symbol = symbol.toUpperCase();
+    if (symbol.endsWith("-PERP")) {
+    } else if (symbol.endsWith("PERP")) {
+      symbol = symbol.replace("PERP", "-PERP");
+    } else if (symbol.endsWith("-USDT")) {
+      symbol = symbol.replace("-USDT", "-PERP");
+    } else if (symbol.endsWith("USDT")) {
+      symbol = symbol.replace("USDT", "-PERP");
     }
-  ) => {
-    console.log("chase amount", chase?.by_amount);
-    let _future: any = await this._client.getFuture(symbol);
-    let future: any = _future?.result;
-    console.log(future);
-    let new_price;
-    try {
-      if (side.toLowerCase() == "sell") {
-        new_price = future?.last + Math.abs(chase?.by_amount || 0);
-      } else {
-        new_price = future?.last - Math.abs(chase?.by_amount || 0);
-      }
-      await this._client
-        .placeOrder({
-          side,
-          size: size / parseFloat(`${future?.last}`), // Converting size orders into USD
-          market: symbol,
-          price: new_price,
-          type: "limit",
-        })
-        .then(async (result: any) => {
-          let message = "";
-          if (result["success"]) {
-            message = `Placed a new limit order with\n`;
-            message += `\n "id": \`${result.result?.id}\`\n`;
-            message += `\n"Symbol:" \`${result["result"]["market"]}\`\n`
-            message += `\n"price:" \`${result["result"]["price"]}\`\n`;
-            message += `\n"Size:" \`${result["result"]["size"]}\`\n`;
-            message += `\n"Side:" \`${result["result"]["side"]}\`\n`;
-            sendMessage(message);
-            console.log("Placing Order msg", message);
-            console.log("result msg", result);
-            let id = result["result"]["id"];
-            let side = result["result"]["side"];
-            let market = result["result"]["market"];
-            let size = result["result"]["size"];
-            let startTime = new Date().getTime();
-            let new_price;
-            let count = 1;
-            while (chase) {
-              message = `\`${count}:\` Chasing order \`${id}\`...`;
-              console.log(message);
-              sendMessage(message);
-              count++;
-              let _future: any = await this._client.getFuture(symbol);
-              let price: any = _future?.result?.last;
-              if (side.toLowerCase() == "sell") {
-                new_price = price + Math.abs(chase.by_amount || 0);
-              } else {
-                new_price = price - Math.abs(chase.by_amount || 0);
-              }
-              let data;
-              try {
-                data = await this._client.modifyOrder({
-                  orderId: id,
-                  price: new_price,
-                });
-              } catch (error: any) {
-                let rsn = error?.body?.error;
-                console.log("Error:", rsn);
-                if (rsn?.includes("Must modify either price or size")) {
-                  sendMessage(message);
-                  continue;
-                }
-                if (rsn?.includes("Size too small for provide")) {
-                  message = `Order is now in position`;
-                  sendMessage(message);
-                  break;
-                }
-              }
-
-              if (data?.success) {
-                id = data["result"]["id"];
-                side = data["result"]["side"];
-                message = `Success: modified order \`${id}\``;
-                sendMessage(message);
-              } else {
-                message = `Error while modifying order: ${data?.error}`;
-                sendMessage(message);
-                console.log(message);
-                break;
-              }
-              console.log("modify:", data);
-              let current = new Date().getTime();
-              let diff = current - startTime;
-              if (
-                chase.howLongInSec >= chase.chaseTimeLimit &&
-                diff >= chase.howLongInSec * 1_000
-              ) {
-                // we go market
-                await this._client.placeOrder({
-                  side,
-                  size,
-                  market,
-                  price,
-                  type: "market",
-                });
-                break;
-              }
-              if (
-                chase.howLongInSec <= chase.chaseTimeLimit &&
-                diff >= chase.howLongInSec * 1_000
-              ) {
-                // we cancel order
-                await this._client.cancelOrder(id);
-                break;
-              }
-              //  modify at 3 seconds interval
-              await sleep(chase.sleep);
-            }
-          }
-        })
-
-        .catch((err: any) => {
-          console.error(`Error:`, err);
-        });
-    } catch (error) {
-      console.log("Errors", error);
-    }
+    return symbol;
   };
 
   _cancelAllOrders = async (params: { market: string }) => {
