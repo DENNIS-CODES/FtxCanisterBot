@@ -74,7 +74,7 @@ export class ftxCanisterWrapper {
         : future + _params.chase.by_amount;
     const { success, result } = await this._client.placeOrder(_params);
     if (success) {
-      sendMessage(`placed ${result.side} order, ${result.id}`);
+      sendMessage(`placed ${result.side} order, ${result.id}, of size ${result.size} at ${result.price}`);
       return {
         id: result.id,
         market: result.market,

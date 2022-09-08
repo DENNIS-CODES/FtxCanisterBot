@@ -16,7 +16,7 @@ const start = async () => {
         console.log("Telegram Connected🦾🦾");
 
         sendMessage(
-          `Bot starting at ${new Date()
+          `Bot started at ${new Date()
             .toString()
             .replaceAll("(", "\\(")
             .replaceAll(")", "\\)")}...`
