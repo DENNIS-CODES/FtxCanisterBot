@@ -2,16 +2,6 @@ import { Telegraf } from 'telegraf';
 import { CONFIG } from '../config/config'
 
 let bot: Telegraf;
-
-const Quantity = 'quantity';
-
-const SHORT_TARGET = 'Short Target';
-const sHORT_MARKET = 'Short Market';
-
-const PRESET_MODE = ' PRESET MODE ⏱️';
-const EXIT_PRESET_MODE = 'EXIT PRESET MODE 🔚'
-const RESET = 'RESET';
-
 bot = new Telegraf(CONFIG.BOT_TOKEN);
 
 bot.use(async (ctx: any, next: any) => {
